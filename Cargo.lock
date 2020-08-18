@@ -45,6 +45,7 @@ dependencies = [
  "prost",
  "time",
  "tokio",
+ "tokio-util",
 ]
 
 [[package]]

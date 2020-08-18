@@ -11,5 +11,6 @@ myapi = {version = "0.1.0", path = "../myapi"}
 bytes = "0.5.4"
 prost = "0.6"
 tokio = {version = "0.2", features = ["full"]}
+tokio-util = {version = "0.3.1", features = ["full"]}
 time = "0.1"
 
