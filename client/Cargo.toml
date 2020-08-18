@@ -1,0 +1,13 @@
+[package]
+name = "client"
+version = "0.1.0"
+authors = ["wayc <wayc@protonmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+myapi = {version = "0.1.0", path = "../myapi"}
+bytes = "0.5.4"
+prost = "0.6"
+tokio = {version = "0.2", features = ["full"]}

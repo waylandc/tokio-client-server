@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package api_v1;
+
+message Wrapper {
+	string api = 1;
+	oneof msg {
+		LoginRequest loginReq = 2;
+		LoginResponse loginResp = 3;
+	}
+}
+
+message LoginRequest {
+	string api = 1;
+	string username = 2;
+	string password = 3;
+}
+
+message LoginResponse {
+	string api = 1;
+	bool status = 2;       
+	string username = 3;
+}
+
+
