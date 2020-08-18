@@ -17,9 +17,9 @@ pub fn myparse_message(message: Vec<u8>) -> Result<pb_api_v1::Wrapper, DecodeErr
     Message::decode(b)
 }
 // parse_message decodes a buffer and returns our Wrapper protobuf message
-//pub fn parse_message<T: bytes::Buf>(message: T) -> Result<pb_api_v1::Wrapper, DecodeError> {
-//    Message::decode(message)
-//}
+pub fn parse_message<T: bytes::Buf>(message: T) -> Result<pb_api_v1::Wrapper, DecodeError> {
+    Message::decode(message)
+}
 
 //TODO should we embed the send in these methods? Passing around Wrappers
 //doesn't seem very dev friendly
@@ -81,5 +81,22 @@ mod tests {
             }
             _ => println!("nothing"),
         }
+    }
+
+    #[test]
+    fn test_decode() {
+        let resp = pb_api_v1::LoginResponse {
+            api: "1.0".to_string(),
+            status: true,
+            username: "me".to_string(),
+        };
+        let mut buf = vec![0; 512];
+
+        match Message::encode(&resp, &mut buf) {
+            Ok(m) => m,
+            Err(error) => println!("encode error: {}", error),
+        }
+        println!("encode {:?}", resp.status);
+
     }
 }

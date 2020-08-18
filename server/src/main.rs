@@ -1,9 +1,9 @@
 //use tokio::prelude::*;
-use std::error::Error as StdError;
-use tokio::net::{TcpListener, TcpStream};
-use tokio::io::AsyncWriteExt;
 use myapi::myapi_v1::pb_api_v1;
 use prost::Message;
+use std::error::Error as StdError;
+use tokio::io::AsyncWriteExt;
+use tokio::net::{TcpListener, TcpStream};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn StdError>> {
@@ -20,23 +20,26 @@ async fn main() -> Result<(), Box<dyn StdError>> {
     }
 }
 
-
-async fn process(mut stream: TcpStream) {
+async fn _process(mut stream: TcpStream) {
     stream.write_all(b"\x00\x01Hello world").await.unwrap();
     stream.flush();
 }
 
-async fn _process(mut stream: TcpStream) {
+async fn process(mut stream: TcpStream) {
     // We will just encode a protobuf message and then send to client
     let response: pb_api_v1::LoginResponse = pb_api_v1::LoginResponse {
         api: "1.0".to_string(),
         status: true,
         username: "Satoshi".to_string(),
     };
-    let mut encoded = Vec::new();
-    encoded.reserve(response.encoded_len());
-    response.encode(&mut encoded).unwrap();
-    stream.write_all(&encoded).await.unwrap();
-
+    let mut buf = Vec::new();
+    //let mut buf = vec![0; 1024];
+    //encoded.reserve(response.encoded_len());
+    //response.encode(&mut encoded).unwrap();
+    match Message::encode_length_delimited(&response, &mut buf) {
+        Ok(m) => m,
+        Err(e) => println!("encode error: {}", e),
+    };
+    println!("encoded: {:?}", buf);
+    stream.write_all(&buf).await.unwrap();
 }
-
