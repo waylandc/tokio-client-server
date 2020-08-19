@@ -3,10 +3,10 @@ use myapi::app_protocol::*;
 use protobuf::Message;
 use std::error::Error;
 use std::str::from_utf8;
-use std::string;
+//use std::string;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
-use tokio::net::{TcpListener, TcpStream};
+use tokio::net::TcpListener;
 
 static PROTOCOL_VERSION: &'static str = "1.0";
 
@@ -21,15 +21,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
         let (rx, tx) = stream.into_split();
         println!("client connected from {}", addr);
         tokio::spawn(async move {
-            match process(tx, rx).await.unwrap() {
-                () => println!("process returned OK"),
-                _ => println!("process returned error"),
+            let ret = process(tx, rx).await;
+            match ret {
+                Ok(t) => println!("process returned {}", t),
+                Err(e) => println!("process returned error: {}", e),
             }
         });
     }
 }
 
-async fn process(mut snd: OwnedWriteHalf, mut recv: OwnedReadHalf) -> Result<(), Box<dyn Error>> {
+async fn process(mut snd: OwnedWriteHalf, mut recv: OwnedReadHalf) -> Result<bool, Box<dyn Error>> {
     //perform protocol version handshake with client
     let mut in_buf: [u8; 1024] = [0; 1024];
     let n = recv
@@ -44,8 +45,15 @@ async fn process(mut snd: OwnedWriteHalf, mut recv: OwnedReadHalf) -> Result<(),
     let client_version = from_utf8(&in_buf).unwrap().to_string();
     let ver: String = PROTOCOL_VERSION.into();
 
-    match client_version {
-        ver => {
+    let proto_check = client_version.trim_matches(char::from(0)).eq(&ver);
+    println!(
+        "protocheck is {} {} {}",
+        client_version.len(),
+        ver.len(),
+        proto_check
+    );
+    match proto_check {
+        true => {
             println!("client version OK");
             snd.write_all(PROTOCOL_VERSION.as_bytes()).await.unwrap();
         }
@@ -57,17 +65,18 @@ async fn process(mut snd: OwnedWriteHalf, mut recv: OwnedReadHalf) -> Result<(),
 
     //TODO just hardcoding a pb to send across wire for now
     // We will just encode a protobuf message and then send to client
-    let mut lr = LoginResponse::default();
-    lr.set_username("Satoshi".to_string());
-    lr.set_status(true);
 
-    let mut wrapper = Wrapper::default();
-    wrapper.set_api("1.0".to_string());
-    wrapper.set_loginResp(lr.clone());
+    // let mut lr = LoginResponse::default();
+    // lr.set_username("Satoshi".to_string());
+    // lr.set_status(true);
 
-    let buf: Vec<u8> = wrapper.write_to_bytes().unwrap();
+    // let mut wrapper = Wrapper::default();
+    // wrapper.set_api("1.0".to_string());
+    // wrapper.set_loginResp(lr.clone());
 
-    snd.write_all(&buf).await.unwrap();
-    println!("Sent {:?}", lr);
-    Ok(())
+    // let buf: Vec<u8> = wrapper.write_to_bytes().unwrap();
+
+    // snd.write_all(&buf).await.unwrap();
+    // println!("Sent {:?}", lr);
+    Ok(true)
 }

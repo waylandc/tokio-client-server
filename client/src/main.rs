@@ -56,10 +56,17 @@ async fn do_handshake(
         let ver: String = CLIENT_VERSION.into();
         //TODO enumerate our version somewhere
         //Check that our protocol version matches server's
-        match server_protocol {
-            ver => println!(
+        let proto_check = server_protocol.trim_matches(char::from(0)).eq(&ver);
+        println!(
+            "{:?} {} {}",
+            server_protocol.trim_matches(char::from(0)),
+            ver.len(),
+            proto_check
+        );
+        match proto_check {
+            true => println!(
                 "Handshake successful, using protocol version {}",
-                server_protocol
+                &server_protocol
             ),
             _ => return Err("Client version unsupported".into()),
         }
