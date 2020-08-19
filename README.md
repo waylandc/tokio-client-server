@@ -4,7 +4,7 @@ Build a basic client and server using [Tokio](https://github.com/tokio-rs/tokio)
 
 1. spawning a thread to process incoming messages
 2. splitting TcpStream into separate send and receive
-3. encoding/decoding protobuf messages using the [Prost library](https://github.com/danburkert/prost**
+3. encoding/decoding protobuf messages using the ~~[Prost library](https://github.com/danburkert/prost)~~ [rust-protobuf crate](https://github.com/stepancheg/rust-protobuf)
 
 
 **To Run***
