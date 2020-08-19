@@ -3,7 +3,6 @@ use myapi::app_protocol::*;
 use protobuf::Message;
 use std::error::Error;
 use std::str::from_utf8;
-//use std::string;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use tokio::net::TcpListener;
