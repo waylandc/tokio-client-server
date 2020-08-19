@@ -1,6 +1,6 @@
-//use tokio::prelude::*;
-use myapi::myapi_v1::pb_api_v1;
-use prost::Message;
+use myapi::app_protocol::*;
+
+use protobuf::Message;
 use std::error::Error as StdError;
 use tokio::io::AsyncWriteExt;
 use tokio::net::{TcpListener, TcpStream};
@@ -11,35 +11,28 @@ async fn main() -> Result<(), Box<dyn StdError>> {
     println!("Server bound and listening on 0.0.0.0:8080");
 
     loop {
-        let (stream, _) = listener.accept().await?;
+        let (stream, addr) = listener.accept().await?;
 
-        println!("client connected");
+        println!("client connected from {}", addr);
         tokio::spawn(async move {
             process(stream).await;
         });
     }
 }
 
-async fn _process(mut stream: TcpStream) {
-    stream.write_all(b"\x00\x01Hello world").await.unwrap();
-    stream.flush();
-}
-
 async fn process(mut stream: TcpStream) {
+    //TODO just hardcoding a pb to send across wire for now
     // We will just encode a protobuf message and then send to client
-    let response: pb_api_v1::LoginResponse = pb_api_v1::LoginResponse {
-        api: "1.0".to_string(),
-        status: true,
-        username: "Satoshi".to_string(),
-    };
-    let mut buf = Vec::new();
-    //let mut buf = vec![0; 1024];
-    //encoded.reserve(response.encoded_len());
-    //response.encode(&mut encoded).unwrap();
-    match Message::encode_length_delimited(&response, &mut buf) {
-        Ok(m) => m,
-        Err(e) => println!("encode error: {}", e),
-    };
-    println!("encoded: {:?}", buf);
+    let mut lr = LoginResponse::default();
+    lr.set_username("Satoshi".to_string());
+    lr.set_status(true);
+
+    let mut wrapper = Wrapper::default();
+    wrapper.set_api("1.0".to_string());
+    wrapper.set_loginResp(lr.clone());
+
+    let buf: Vec<u8> = wrapper.write_to_bytes().unwrap();
+
     stream.write_all(&buf).await.unwrap();
+    println!("Sent {:?}", lr);
 }
