@@ -1,5 +1,5 @@
 use crate::app_protocol::Wrapper;
-use bytes::BytesMut;
+use bytes::{Buf, BytesMut};
 use protobuf;
 use std::io::Error;
 use tokio_util::codec::Decoder;
@@ -18,7 +18,13 @@ impl Decoder for MyCodec {
 
     fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         let wrapper: Wrapper = protobuf::parse_from_bytes(&buf).unwrap();
-        Ok(Some(wrapper))
+        if !buf.is_empty() {
+            let len = buf.len();
+            buf.advance(len);
+            Ok(Some(wrapper))
+        } else {
+            Ok(None)
+        }
     }
 }
 

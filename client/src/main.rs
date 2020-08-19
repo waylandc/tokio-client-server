@@ -29,11 +29,10 @@ async fn main() {
 async fn listener_thread(stream: OwnedReadHalf) -> Result<(), Box<dyn Error>> {
     let mut reader = FramedRead::new(stream, MyCodec::new());
 
-    //TODO ERROR why do I keep receiving the same message repeatedly???
     while let message = reader.next().await {
         match message {
             Some(msg) => println!("received: {:?}", msg),
-            None => println!("error receiving message: "),
+            None => continue,
         }
     }
     Ok(())
