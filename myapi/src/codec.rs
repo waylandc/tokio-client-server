@@ -17,7 +17,17 @@ impl Decoder for MyCodec {
     type Error = Error;
 
     fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
-        let wrapper: Wrapper = protobuf::parse_from_bytes(&buf).unwrap();
+        println!("decoder buffer length is {}", buf.len());
+
+        let msg = buf.split_off(2);
+        // prepare a 16 bit buffer to read message length
+        // let mut msg_size: [u8; 2] = [0; 2];
+        // let mut handle = buf.take(2);
+        // handle.read(&mut msg_size)?;
+        println!("incoming msg size is {:?}", buf);
+        println!("incoming msg is {:?}", msg);
+
+        let wrapper: Wrapper = protobuf::parse_from_bytes(&msg).unwrap();
         if !buf.is_empty() {
             let len = buf.len();
             buf.advance(len);
