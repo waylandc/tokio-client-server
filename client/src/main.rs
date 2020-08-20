@@ -1,4 +1,7 @@
+use myapi::app_protocol::*;
 use myapi::codec::MyCodec;
+use protobuf::Message;
+use std::convert::{From, TryInto};
 use std::error::Error;
 use std::str::from_utf8;
 use std::{thread, time};
@@ -73,6 +76,29 @@ async fn do_handshake(
 
         // Handshake successful, proceed
         let mut reader = FramedRead::new(recv, MyCodec::new());
+
+        let mut lr = LoginRequest::default();
+        lr.set_username("wayc".to_string());
+        lr.set_password("mysecretp@ssw0rd".to_string());
+
+        let mut wrapper = Wrapper::default();
+        wrapper.set_api("1.0".to_string());
+        wrapper.set_loginReq(lr.clone());
+
+        let response_buf: Vec<u8> = wrapper.write_to_bytes().unwrap();
+        let buf_size: u8 = buf.len() as u8;
+        println!("calculated msg length is {}", buf_size);
+
+        let nn = buf_size as u16;
+        let num = nn.to_be_bytes(); //[u8, u8]
+
+        let mut concat: Vec<u8> = num.to_vec();
+        for &s in &response_buf {
+            concat.push(s);
+        }
+
+        println!("sending response {} bytes long", concat.len());
+        snd.write_all(&concat).await.unwrap();
 
         while let Some(message) = reader.next().await {
             match message {

@@ -1,6 +1,7 @@
 use myapi::app_protocol::*;
 
 use protobuf::Message;
+use std::convert::{From, TryInto};
 use std::error::Error;
 use std::str::from_utf8;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -76,9 +77,24 @@ async fn process(
     wrapper.set_api("1.0".to_string());
     wrapper.set_loginResp(lr.clone());
 
-    let buf: Vec<u8> = wrapper.write_to_bytes().unwrap();
+    let response_buf: Vec<u8> = wrapper.write_to_bytes().unwrap();
+    let buf_size: u8 = response_buf.len() as u8;
 
-    snd.write_all(&buf).await.unwrap();
+    let nn: u8 = buf_size as u8;
+    let num = nn.to_be_bytes();
+
+    let mut concat: Vec<u8> = num.to_vec();
+    for &s in &response_buf {
+        concat.push(s);
+    }
+
+    //println!("calculated msg length is {}", buf_size);
+    //let mut out: Vec<u8> = Vec::with_capacity(buf.len() + 1);
+    //out.insert(0, buf_size);
+    //out.extend_from_slice(response_buf.as_slice());
+
+    println!("sending LoginRequest {} bytes long", concat.len());
+    snd.write_all(&concat).await.unwrap();
     println!("Sent {:?}", lr);
     Ok(true)
 }
