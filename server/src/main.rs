@@ -1,7 +1,7 @@
-use myapi::app_protocol::*;
+use myapi::app_protocol::{LoginResponse, Wrapper};
 
 use protobuf::Message;
-use std::convert::{From, TryInto};
+use std::convert::From;
 use std::error::Error;
 use std::str::from_utf8;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
@@ -69,11 +69,11 @@ async fn process(
     //TODO just hardcoding a pb to send across wire for now
     // We will just encode a protobuf message and then send to client
 
-    let mut lr = LoginResponse::default();
+    let mut lr: myapi::app_protocol::LoginReponse = LoginResponse::default();
     lr.set_username("Satoshi".to_string());
     lr.set_status(true);
 
-    let mut wrapper = Wrapper::default();
+    let mut wrapper: Wrapper = Wrapper::default();
     wrapper.set_api("1.0".to_string());
     wrapper.set_loginResp(lr.clone());
 
@@ -88,13 +88,11 @@ async fn process(
         concat.push(s);
     }
 
-    //println!("calculated msg length is {}", buf_size);
-    //let mut out: Vec<u8> = Vec::with_capacity(buf.len() + 1);
-    //out.insert(0, buf_size);
-    //out.extend_from_slice(response_buf.as_slice());
-
-    println!("sending LoginRequest {} bytes long", concat.len());
+    println!("sending LoginResponse {} bytes long", concat.len());
     snd.write_all(&concat).await.unwrap();
-    println!("Sent {:?}", lr);
+    println!(
+        "Sent response to {:?}",
+        wrapper.get_loginResp().get_username()
+    );
     Ok(true)
 }

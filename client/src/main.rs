@@ -1,7 +1,7 @@
 use myapi::app_protocol::*;
 use myapi::codec::MyCodec;
 use protobuf::Message;
-use std::convert::{From, TryInto};
+use std::convert::From;
 use std::error::Error;
 use std::str::from_utf8;
 use std::{thread, time};
@@ -97,12 +97,15 @@ async fn do_handshake(
             concat.push(s);
         }
 
-        println!("sending response {} bytes long", concat.len());
+        println!("sending request {} bytes long", concat.len());
         snd.write_all(&concat).await.unwrap();
 
         while let Some(message) = reader.next().await {
             match message {
-                Ok(msg) => println!("received: {:?}", msg),
+                Ok(msg) => println!(
+                    "received login response: {:?}",
+                    msg.get_loginResp().get_status()
+                ),
                 Err(_) => continue,
             }
         }
